@@ -35,6 +35,7 @@ public class FirstUseDBCreation {
 
          userDocument = db.collection(users).document((userName+userID));
          userDocument.collection("GPS_Location").document("GPS_Pings").set(Pings);
+        userDocument.collection("GPS_Location").document("GPS_Map_Points").set(Pings);
     }
 
 

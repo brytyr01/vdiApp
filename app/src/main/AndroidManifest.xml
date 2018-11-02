@@ -54,17 +54,13 @@
 
         <activity
             android:name=".GPSMap.MapsActivity"
-            android:label="@string/title_activity_maps" />
-
-        <service
-            android:name=".MyDataBaseService"
-            android:enabled="true"
-            android:exported="true" />
-
+            android:label="@string/title_activity_maps"
+            android:parentActivityName=".Activities.HomePageActivity" />
         <activity
             android:name=".TabBar.TabbedActivity"
             android:label="@string/title_activity_tabbed"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".Activities.PastTripListActivity"></activity>
     </application>
 
 </manifest>

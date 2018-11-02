@@ -1,6 +1,8 @@
 package com.example.bryantyrrell.vdiapp.GPSMap;
 import android.graphics.Color;
 import android.os.AsyncTask;
+
+import com.example.bryantyrrell.vdiapp.Database.DatabaseService;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
@@ -29,15 +31,20 @@ public class DirectionsParser {
     private BufferedReader reader;
     private String JSONFile;
     private boolean result = false;
+    private DatabaseService databaseService;
+    private String userID,userName;
 
-    DirectionsParser(GoogleMap mMap, ArrayList<LatLng> storedPoints) {
+
+    DirectionsParser(GoogleMap mMap, ArrayList<LatLng> storedPoints,DatabaseService databaseUser) {
         this.mMap = mMap;
         this.preProcessedPoints = storedPoints;
         postProcessedPoints=new ArrayList<>();
+
+        databaseService=databaseUser;
     }
 
 
-    public void stringBuilder() {
+    public void URLstringBuilder() {
 
         StringBuilder path = new StringBuilder();
         path.append("https://roads.googleapis.com/v1/snapToRoads?path=");
@@ -98,6 +105,28 @@ public class DirectionsParser {
         }
         //add Marker in current position
         line = mMap.addPolyline(options); //add Polyline
+
+        // takes old gps points out of the array and sends them to the database class to be uploaded
+        RemoveGPSPoints();
+    }
+    // takes old gps points out of the array and sends them to the database class to be uploaded
+    private void RemoveGPSPoints() {
+        // leaves 1 point for accuracy
+        for(int i=0;i<(preProcessedPoints.size()-1);i++) {
+
+           databaseService.addPreGpsPoint(preProcessedPoints.remove(i));
+
+       }
+        for(int i=0;i<(postProcessedPoints.size());i++) {
+
+            databaseService.addPostGpsPoint(postProcessedPoints.remove(i));
+        }
+
+
+        // clears all the points from the preprocessed and processed arraylist
+
+        postProcessedPoints.clear();
+
     }
 
 
