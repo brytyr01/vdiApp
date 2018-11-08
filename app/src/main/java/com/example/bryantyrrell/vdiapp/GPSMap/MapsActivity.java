@@ -36,6 +36,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.bryantyrrell.vdiapp.Database.DatabaseService;
+import com.example.bryantyrrell.vdiapp.Database.RouteStorage;
 import com.example.bryantyrrell.vdiapp.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -79,6 +80,8 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
     private float offset2;
     private float offset3;
 
+    RouteStorage nameStorage;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,7 +91,8 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         mAuth = FirebaseAuth.getInstance();
-
+        // Route set up
+        nameStorage = new RouteStorage();
 
         // toolbar set up
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -234,8 +238,9 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
                 //set up route in database
                 System.out.println("This is the string taken in for route"+m_Text);
                 databaseUser.createRouteGpsStorage(m_Text);
+                databaseUser.addRouteName(m_Text);
                 //
-                //
+                nameStorage.setRouteNames(m_Text);
                 //then setup == false
                 setUp=false;
                 State = 1;
@@ -365,7 +370,7 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
         boolean canGetLocation = true;
         int ALL_PERMISSIONS_RESULT = 101;
         long MIN_DISTANCE_CHANGE_FOR_UPDATES = 100;// Distance in meters
-        long MIN_TIME_BW_UPDATES = 1000 * 20 * 1;// Time in milliseconds
+        long MIN_TIME_BW_UPDATES = 1000 * 5 * 1;// Time in milliseconds
 
         ArrayList<String> permissions = new ArrayList<>();
         ArrayList<String> permissionsToRequest;

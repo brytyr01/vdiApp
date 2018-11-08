@@ -4,8 +4,12 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
@@ -18,7 +22,7 @@ import java.util.Map;
 import static android.support.constraint.Constraints.TAG;
 
 public class DatabaseService {
-
+    private ArrayList<String> RouteArrList;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private String users="users";
     private String userID,userName;
@@ -26,7 +30,8 @@ public class DatabaseService {
     private ArrayList<LatLng> postProcessedPoints;
     DocumentReference userDocument;
     private String RouteName;
-
+    private int count=0;
+    private int count1=0;
     public DatabaseService(String uid, String userName){
 
         userID=uid;
@@ -64,7 +69,7 @@ public class DatabaseService {
 
 
 
-    public DocumentReference getGPSDocument(DatabaseService collectionName){
+    public DocumentReference getUserDocument(){
         return userDocument;
     }
 
@@ -76,12 +81,12 @@ public class DatabaseService {
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
                 Map<String, GeoPoint> gpsping = new HashMap<>();
 
-                LatLng gpsPoint = preProcessedPoints.get(i);
+                LatLng gpsPoint = preProcessedPoints.remove(i);
 
                 GeoPoint geopint = new GeoPoint(gpsPoint.latitude,gpsPoint.longitude);
-                gpsping.put("ping" + timestamp.toString(), geopint);
-                userDocument
-                        .collection("GPS_Location").document(RouteName).collection("GPS_Pings").document("Raw_GPS_Pings").update("Array of GeoPoints", FieldValue.arrayUnion(gpsping))
+                count++;
+                gpsping.put("ping" + count, geopint);
+                userDocument.collection("GPS_Location").document(RouteName).collection("GPS_Pings").document("Raw_GPS_Pings").update("ping" + count,geopint)
 
                         .addOnFailureListener(new OnFailureListener() {
                             @Override
@@ -89,7 +94,7 @@ public class DatabaseService {
                                 Log.w(TAG, "Error adding pre processed gps points", e);
                             }
                         });
-                if(i==(preProcessedPoints.size()-1)){
+                if(i==(preProcessedPoints.size()-1)){//-1
                     preProcessedPoints.clear();
                 }
             }
@@ -105,12 +110,12 @@ public class DatabaseService {
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
                 Map<String, GeoPoint> gpsping = new HashMap<>();
 
-                LatLng gpsPoint = postProcessedPoints.get(i);
+                LatLng gpsPoint = postProcessedPoints.remove(i);
 
                 GeoPoint geopint = new GeoPoint(gpsPoint.latitude,gpsPoint.longitude);
                 gpsping.put("ping" + timestamp.toString(), geopint);
-                userDocument
-                        .collection("GPS_Location").document(RouteName).collection("GPS_Pings").document("Processed_GPS_Pings").update("Array of GeoPoints", FieldValue.arrayUnion(gpsping))
+                userDocument.collection("GPS_Location").document(RouteName).collection("GPS_Pings").document("Processed_GPS_Pings").update("ping"+count1++,geopint)//.update("Array of GeoPoints", FieldValue.arrayUnion(gpsping))
+
 
                         .addOnFailureListener(new OnFailureListener() {
                             @Override
@@ -135,10 +140,18 @@ public class DatabaseService {
         Map<String, Object> Pings = new HashMap<>();
         Map<String, GeoPoint> FirstPing = new HashMap<>();
         FirstPing.put("TestPing", gps);
-        Pings.put("Array of GeoPoints", FirstPing);
 
 
-        userDocument.collection("GPS_Location").document(RouteName).collection("GPS_Pings").document("Raw_GPS_Pings").set(Pings);//"Raw_GPS_Pings"
-        userDocument.collection("GPS_Location").document(RouteName).collection("GPS_Pings").document("Processed_GPS_Pings").set(Pings);//Processed_GPS_Pings
+
+        userDocument.collection("GPS_Location").document(RouteName).collection("GPS_Pings").document("Raw_GPS_Pings").set(FirstPing);//"Raw_GPS_Pings"
+        userDocument.collection("GPS_Location").document(RouteName).collection("GPS_Pings").document("Processed_GPS_Pings").set(FirstPing);//Processed_GPS_Pings
     }
-}
+
+    public void addRouteName(String RouteName) {
+        userDocument.collection("GPS_Location").document("RouteNames").update("Routes", FieldValue.arrayUnion(RouteName));//"add route names to array"
+    }
+
+
+
+    }
+

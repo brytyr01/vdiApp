@@ -60,7 +60,20 @@
             android:name=".TabBar.TabbedActivity"
             android:label="@string/title_activity_tabbed"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".Activities.PastTripListActivity"></activity>
+        <activity android:name=".Activities.PastTripListActivity" />
+        <activity
+            android:name=".Activities.RouteListActivity"
+            android:label="@string/title_activity_route_list"
+            android:parentActivityName=".Activities.HomePageActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.bryantyrrell.vdiapp.Activities.HomePageActivity" />
+        </activity>
+        <activity android:name=".Activities.PastRouteMapView" />
+        <activity
+            android:name=".Activities.PastMapsActivity"
+            android:label="@string/title_activity_past_maps"></activity>
     </application>
 
 </manifest>

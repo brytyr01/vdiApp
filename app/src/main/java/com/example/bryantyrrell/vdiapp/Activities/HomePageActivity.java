@@ -23,4 +23,8 @@ public class HomePageActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MapsActivity.class);
         startActivity(intent);
     }
+    public void updateToRouteListScreen(View view) {
+        Intent intent = new Intent(this, RouteListActivity.class);
+        startActivity(intent);
+    }
 }
