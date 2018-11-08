@@ -1,42 +1,28 @@
 package com.example.bryantyrrell.vdiapp.GPSMap;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Animatable;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.provider.Settings;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-
-
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
-
 import com.example.bryantyrrell.vdiapp.Database.DatabaseService;
-import com.example.bryantyrrell.vdiapp.Database.RouteStorage;
 import com.example.bryantyrrell.vdiapp.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -47,40 +33,20 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import com.google.firebase.firestore.GeoPoint;
-
 import java.util.ArrayList;
-// changed to AppCompatActivity from FragmentActivity
 public class MapsActivity extends AppCompatActivity  implements LocationListener ,OnMapReadyCallback {
-    private FirebaseAuth mAuth;
     private GoogleMap mMap;
     private ProgressDialog LocationDialog;
     private Marker markerLocation;
     private DatabaseService databaseUser;
-    private ArrayList<LatLng> storedPoints;
-    private Polyline line;
+    private ArrayList<LatLng> storedPoints, postProcessedPoints;
     private DirectionsParser directionsParser;
-    private ArrayList<LatLng> postProcessedPoints;
-    private int State=3;
-    private String m_Text = "";
-
-    private ImageButton fab;
-    private boolean setUp=true;
-    private boolean expanded = false;
-
-    private View fabAction1;
-    private View fabAction2;
-    private View fabAction3;
-
-    private float offset1;
-    private float offset2;
-    private float offset3;
-
-    RouteStorage nameStorage;
+    private ImageButton fabButton;//fab
+    private View fabAction1, fabAction2, fabAction3;
+    private FabButtons fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,9 +56,6 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        mAuth = FirebaseAuth.getInstance();
-        // Route set up
-        nameStorage = new RouteStorage();
 
         // toolbar set up
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -102,167 +65,43 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-
-
-
+        // fab set up
         final ViewGroup fabContainer = (ViewGroup) findViewById(R.id.fab_container);
-        fab = (ImageButton) findViewById(R.id.fab);
+        fabButton = (ImageButton) findViewById(R.id.fab);
         fabAction1 = findViewById(R.id.fab_action_1);
         fabAction2 = findViewById(R.id.fab_action_2);
         fabAction3 = findViewById(R.id.fab_action_3);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                expanded = !expanded;
-                if (expanded) {
-                    expandFab();
-                } else {
-                    collapseFab();
-                }
-            }
-        });
-        fabContainer.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                fabContainer.getViewTreeObserver().removeOnPreDrawListener(this);
-                offset1 = fab.getY() - fabAction1.getY();
-                fabAction1.setTranslationY(offset1);
-                offset2 = fab.getY() - fabAction2.getY();
-                fabAction2.setTranslationY(offset2);
-                offset3 = fab.getY() - fabAction3.getY();
-                fabAction3.setTranslationY(offset3);
-                return true;
-            }
-        });
-
-
-
-
         // initialises the arraylist to store the gps points
         storedPoints = new ArrayList<>();
-        postProcessedPoints= new ArrayList<>();
-
+        postProcessedPoints = new ArrayList<>();
         //asks the user for permission
         checkLocationPermission();
-       // the users database entry is gathered
+        // the users database entry is gathered
         InitialiseDataBaseUser();
-       // starts harvesting gps locations
+        // starts harvesting gps locations
         startGettingLocations();
+        // Initialise the fab buttons in its own class
+        fab = new FabButtons(databaseUser, fabButton, fabContainer, fabAction1, fabAction2, fabAction3, this);
 
     }
-    // start pause stop states
+
     public void fabAction1(View v) {
-
-        if(setUp==true){
-            popUpRouteBox();
-
-        }
-        if(setUp==false) {
-            State = 1;
-            Toast.makeText(this, "Tracking started",
-                    Toast.LENGTH_LONG).show();
-        }
-
+        fab.fabAction1(v);
     }
 
     public void fabAction2(View v) {
-        // TODO Auto-generated method stub
-        if(setUp==false){
-            Toast.makeText(this, "Tracking paused",
-                Toast.LENGTH_LONG).show();
-            State=2;
-        }
+        fab.fabAction2(v);
     }
+
     public void fabAction3(View v) {
-        // TODO Auto-generated method stub
-        Toast.makeText(this, "Tracking stopped",
-                Toast.LENGTH_LONG).show();
-        State=3;
-        setUp=true;
+        fab.fabAction3(v);
+
     }
-    private void collapseFab() {
-        fab.setImageResource(R.drawable.animated_minus);
-        AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.playTogether(createCollapseAnimator(fabAction1, offset1),
-                createCollapseAnimator(fabAction2, offset2),
-                createCollapseAnimator(fabAction3, offset3));
-        animatorSet.start();
-        animateFab();
-    }
-
-    private void expandFab() {
-        fab.setImageResource(R.drawable.animated_plus);
-        AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.playTogether(createExpandAnimator(fabAction1, offset1),
-                createExpandAnimator(fabAction2, offset2),
-                createExpandAnimator(fabAction3, offset3));
-        animatorSet.start();
-        animateFab();
-    }
-
-    private static final String TRANSLATION_Y = "translationY";
-
-    private Animator createCollapseAnimator(View view, float offset) {
-        return ObjectAnimator.ofFloat(view, TRANSLATION_Y, 0, offset)
-                .setDuration(getResources().getInteger(android.R.integer.config_mediumAnimTime));
-    }
-
-    private Animator createExpandAnimator(View view, float offset) {
-        return ObjectAnimator.ofFloat(view, TRANSLATION_Y, offset, 0)
-                .setDuration(getResources().getInteger(android.R.integer.config_mediumAnimTime));
-    }
-
-    private void animateFab() {
-        Drawable drawable = fab.getDrawable();
-        if (drawable instanceof Animatable) {
-            ((Animatable) drawable).start();
-        }
-    }
-
-    // asks user to chose a name for the route
-    private void popUpRouteBox() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Please enter Route Name");
-
-// Set up the input
-        final EditText input = new EditText(this);
-// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
-        builder.setView(input);
-
-// Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                m_Text = input.getText().toString();
-                //set up route in database
-                System.out.println("This is the string taken in for route"+m_Text);
-                databaseUser.createRouteGpsStorage(m_Text);
-                databaseUser.addRouteName(m_Text);
-                //
-                nameStorage.setRouteNames(m_Text);
-                //then setup == false
-                setUp=false;
-                State = 1;
-                Toast.makeText(getApplicationContext() , "Tracking started", Toast.LENGTH_LONG).show();
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        builder.show();
-    }
-
-
 
     private void InitialiseDataBaseUser() {
-
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
-        databaseUser= new DatabaseService(user.getUid(),user.getEmail());
+        databaseUser = new DatabaseService(user.getUid(), user.getEmail());
     }
 
 
@@ -278,31 +117,82 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        directionsParser=new DirectionsParser(mMap,storedPoints,databaseUser);
+        directionsParser = new DirectionsParser(mMap, storedPoints, databaseUser);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        // sends location to database
-        //GeoPoint gps = new GeoPoint(location.getLatitude(),location.getLongitude());
-        //databaseUser.updateGPSLocation(gps);
 
-        
-        LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         // adds a marker for new gps point
         addMarker(latLng);
 
-
-        // adds the gps point to an array and draws line
+        // adds the gps point to an array
         storedPoints.add(latLng);
 
         // if 2 gps points and go state selected
-        if(storedPoints.size()>1&&State==1) {
+        if (storedPoints.size() > 1 && fab.getState() == 1) {
             directionsParser.URLstringBuilder();
         }
 
 
     }
+
+    private void addMarker(LatLng latLng) {
+        if (latLng == null) {
+            return;
+        }
+        if (markerLocation != null) {
+            markerLocation.remove();
+        }
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+        markerOptions.title("New Location");
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+        if (mMap != null)
+            markerLocation = mMap.addMarker(markerOptions);
+
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(new LatLng(latLng.latitude, latLng.longitude))
+                .zoom(16)
+                .build();
+
+        if (mMap != null)
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+    }
+
+
+    // Gets the location of the user on demand
+    private void getLocation() {
+        LocationDialog = new ProgressDialog(this);
+        LocationDialog.setMessage("Loading location...");
+        LocationDialog.show();
+
+        if (ActivityCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+            Toast.makeText(this, "Permission to access GPS denied", Toast.LENGTH_SHORT).show();
+
+            LocationDialog.dismiss();
+            return;
+        }
+
+        SingleShotLocationProvider.requestSingleUpdate(this,
+                new SingleShotLocationProvider.LocationCallback() {
+                    @Override
+                    public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
+                        LatLng latLng = new LatLng(location.latitude, location.longitude);
+                        LocationDialog.dismiss();
+                        addMarker(latLng);
+
+                    }
+                });
+    }
+
+
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -422,8 +312,7 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
                         MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 
             }
-        }
-        else{
+        } else {
             Toast.makeText(this, "Can't get location", Toast.LENGTH_SHORT).show();
         }
     }
@@ -440,6 +329,7 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
 
         return result;
     }
+
     private boolean hasPermission(String permission) {
         if (canAskPermission()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -448,6 +338,7 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
         }
         return true;
     }
+
     private boolean canAskPermission() {
         return (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1);
     }
@@ -470,60 +361,6 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
         });
 
         alertDialog.show();
-    }
-
-    private void addMarker(LatLng latLng) {
-        if (latLng == null) {
-            return;
-        }
-        if (markerLocation != null) {
-            markerLocation.remove();
-        }
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title("New Location");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-        if (mMap != null)
-            markerLocation = mMap.addMarker(markerOptions);
-
-
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(latLng.latitude, latLng.longitude))
-                .zoom(16)
-                .build();
-
-        if (mMap != null)
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-    }
-
-
-    // Gets the location of the user on demand
-    private void getLocation() {
-        LocationDialog = new ProgressDialog(this);
-        LocationDialog.setMessage("Loading location...");
-        LocationDialog.show();
-
-        if (ActivityCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-
-            Toast.makeText(this, "Permission to access GPS denied", Toast.LENGTH_SHORT).show();
-
-            LocationDialog.dismiss();
-            return;
-        }
-
-        SingleShotLocationProvider.requestSingleUpdate(this,
-                new SingleShotLocationProvider.LocationCallback() {
-                    @Override
-                    public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
-                        LatLng latLng = new LatLng(location.latitude, location.longitude);
-                        LocationDialog.dismiss();
-                        addMarker(latLng);
-
-                    }
-                });
     }
 
 }

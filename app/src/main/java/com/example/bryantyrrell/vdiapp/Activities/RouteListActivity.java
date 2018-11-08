@@ -58,7 +58,7 @@ public class RouteListActivity extends AppCompatActivity {
     }
     private void printRouteNames(){
         // if loop checks to ensure arraylist not empty
-        if(!routeNames.isEmpty()) {
+        if(routeNames!=null) {
             //loop through all route names
             for (int i = 0; i < routeNames.size(); i++) {
                 String RouteName = routeNames.get(i);

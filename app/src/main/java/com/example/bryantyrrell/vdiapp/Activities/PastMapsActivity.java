@@ -4,16 +4,14 @@ import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-
 import com.example.bryantyrrell.vdiapp.Database.DatabaseService;
-import com.example.bryantyrrell.vdiapp.GEOPoint;
 import com.example.bryantyrrell.vdiapp.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -23,29 +21,15 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class PastMapsActivity extends FragmentActivity implements OnMapReadyCallback {
-    private FirebaseAuth mAuth;
-    private ArrayList<GeoPoint> GPSPoints;
-    private DatabaseService DatabaseAccoser;
     private GoogleMap mMap;
     private String routeName;
     GeoPoint geoPoint;
     GeoPoint point;
-    private ArrayList<GeoPoint> postProcessedPoints = new ArrayList<GeoPoint>();
-    ;
-    GEOPoint use;
+    private ArrayList<GeoPoint> postProcessedPoints = new ArrayList<>();
+    private ArrayList<LatLng> postProcessedLatLngPoints;
     LatLng LtLngPoint;
 
     @Override
@@ -82,83 +66,37 @@ public class PastMapsActivity extends FragmentActivity implements OnMapReadyCall
     }
 
     private void getGPSPoints() {
-
-        mAuth = FirebaseAuth.getInstance();
+        //gets database reference
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
-        DatabaseAccoser = new DatabaseService(user.getUid(), user.getEmail());
+        DatabaseService DatabaseAccessor = new DatabaseService(user.getUid(), user.getEmail());
 
-        DocumentReference userDocument = DatabaseAccoser.getUserDocument();
-        System.out.println(routeName);
+        DocumentReference userDocument = DatabaseAccessor.getUserDocument();
+
+        //gets gps points in geoPoint format
         userDocument.collection("GPS_Location").document(routeName).collection("GPS_Pings").document("Processed_GPS_Pings").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
+                    // check if count starts at 0 or 1+doest account for missed ping
+                        for (int i = 1; document.contains("ping" + i); i++) {
+                            String name = "ping" + i;
+                            point = document.getGeoPoint(name);
+                            if (point != null) {
+                                try {
+                                    geoPoint = new GeoPoint(point.getLatitude(), point.getLongitude());
+                                    postProcessedPoints.add(geoPoint);
 
-                    for (int i = 1; document.contains("ping" + i); i++) {
-                        String name = "ping" + i;
-                        point = (GeoPoint) document.getGeoPoint(name);
-                        if (point != null) {
-                            try {
-                                geoPoint = new GeoPoint(point.getLatitude(), point.getLongitude());
-                                System.out.println(point.toString() + point.getLatitude());
-                                postProcessedPoints.add(geoPoint);
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
-                        else {
-                            RedrawLine();
-                        }
-
+                    //once for loop has finished else empty route?
+                    if(postProcessedPoints!=null&&!postProcessedPoints.isEmpty()) {
+                        RedrawLine();
                     }
-                    RedrawLine();
-
-
-                    // ArrayList<GeoPoint> GPSPoints = (ArrayList<GeoPoint>) document.getData();//"Array of GeoPoints"ArrayList<LatLng>
-                    // ArrayList<Object> map =(ArrayList<Object>) (document.getData());
-
-                    //  use = document.toObject(GEOPoint.class);
-                    // HashMap<String, GeoPoint> userPrivacy = use.getGEOPoint();
-
-
-                    // System.out.println(userPrivacy.toString());
-//                        for (String name: map.keySet()){
-//
-//                            System.out.println(name);
-//                            System.out.println(map);
-//                        }
-//                         System.out.println(GPSPoints.toString());
-//                        //String json = GPSPoints.toString();
-//                        Gson gson = new Gson();
-//                        JsonElement jsonElement = gson.toJsonTree(GPSPoints.toString());
-//                       // System.out.println("JSON Element"+jsonElement.toString());
-//                        System.out.println(jsonElement.toString());
-//                        GeoPoint point = gson.fromJson(jsonElement, GeoPoint.class);
-
-                    //System.out.println(point.toString());
-// if(array.contains("GeoPoints")){}
-                    //                       try {
-//                            JSONObject obj = new JSONObject(GPSPoints.toString());
-//                            JSONArray geodata = jsonElement.getJSONArray("Array of GeoPoints");
-//                            final int n = geodata.length();
-//                            for (int i = 0; i < n; ++i) {
-//                                JSONObject geopoint = geodata.getJSONObject(i);
-//                                System.out.println(geopoint.toString());
-//                                if (geopoint.has("GeoPoint")) {
-//                                    System.out.println("Double processed:" + geopoint.getJSONObject("location"));
-//                                    JSONObject obje = geopoint.getJSONObject("location");
-//                                    System.out.println("Double processed:" + obje.getDouble("longitude"));
-//                                    LatLng point = new LatLng(obje.getDouble("latitude"), obje.getDouble("longitude"));
-//                                    postProcessedPoints.add(point);
-//                                }
-//                            }
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        }
-
-
                 }
             }
 
@@ -166,43 +104,60 @@ public class PastMapsActivity extends FragmentActivity implements OnMapReadyCall
         });
     }
 
-
-    private void ConvertGPSPoints() {
-
-        for (int i = 0; i < GPSPoints.size(); i++) {
-            System.out.println(GPSPoints.get(i).toString());
-
-            //System.out.println();
-
-        }
-
-    }
-
     private void RedrawLine() {
         PolylineOptions options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
+        convertToLatLngList(postProcessedPoints);
+        for (int i = 0; i < postProcessedLatLngPoints.size(); i++) {
 
-        for (int i = 0; i < postProcessedPoints.size(); i++) {
-            //System.out.println(postProcessedPoints.size());
-            GeoPoint point = postProcessedPoints.get(i);
-            LtLngPoint = new LatLng(point.getLatitude(), point.getLongitude());
+            LtLngPoint = postProcessedLatLngPoints.get(i);
+
+            if (i == 0) {
+                mMap.addMarker(new MarkerOptions().position(LtLngPoint).title("Start of route"));
+                //zoom to route size
+                zoomToRoute();
+            }
+
             options.add(LtLngPoint);
 
         }
+        // adds marker to end of route
+        mMap.addMarker(new MarkerOptions().position(LtLngPoint).title("End of route"));
+
         //add Marker in current position
         mMap.addPolyline(options); //add Polyline
 
 
-        mMap.addMarker(new MarkerOptions().position(LtLngPoint).title("Marker for route"));
-        // mMap.moveCamera(CameraUpdateFactory.newLatLng(LtLngPoint));
 
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(LtLngPoint.latitude, LtLngPoint.longitude))
-                .zoom(16)
-                .build();
-
-        if (mMap != null)
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-    }
 
     }
+
+    private void convertToLatLngList(ArrayList<GeoPoint> postProcessedPoints) {
+        postProcessedLatLngPoints=new ArrayList<>();
+
+        for (int i = 0; i < postProcessedPoints.size(); i++) {
+            GeoPoint point = postProcessedPoints.get(i);
+            LtLngPoint = new LatLng(point.getLatitude(), point.getLongitude());
+            postProcessedLatLngPoints.add(LtLngPoint);
+
+        }
+    }
+
+    private void zoomToRoute() {
+
+        if (mMap == null || postProcessedLatLngPoints == null || postProcessedLatLngPoints.isEmpty()) return;
+
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        for (LatLng latLngPoint : postProcessedLatLngPoints) {
+            boundsBuilder.include(latLngPoint);
+        }
+
+        int routePadding = 100;
+        LatLngBounds latLngBounds = boundsBuilder.build();
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, routePadding));
+
+    }
+}
+
+
 

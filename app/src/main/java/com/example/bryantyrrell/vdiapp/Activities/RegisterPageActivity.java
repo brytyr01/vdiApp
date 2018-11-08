@@ -84,9 +84,9 @@ public class RegisterPageActivity extends AppCompatActivity {
         startActivity(intent);
     }
     private void setUpUser(String uid, String UserName) {
-        // set up users instance of db
-        FirstUseDBCreation newUser = new FirstUseDBCreation(uid,UserName,this);
-        newUser.CreateUserFiles();
+        // set up users instance on db
+         new FirstUseDBCreation(uid,UserName);
+
 
         // change to home page
         Intent intent = new Intent(this, HomePageActivity.class);
