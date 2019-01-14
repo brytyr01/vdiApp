@@ -73,7 +73,25 @@
         <activity android:name=".Activities.PastRouteMapView" />
         <activity
             android:name=".Activities.PastMapsActivity"
-            android:label="@string/title_activity_past_maps"></activity>
+            android:label="@string/title_activity_past_maps" />
+
+        <service
+            android:name=".GPSMap.GpsSpeedService"
+            android:exported="false" />
+        <service
+            android:name=".GpsSpeedService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity
+            android:name=".Activities.ChatActivity"
+            android:label="@string/title_activity_chat"
+            android:parentActivityName=".Activities.PastMapsActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.bryantyrrell.vdiapp.Activities.PastMapsActivity" />
+        </activity>
     </application>
 
 </manifest>

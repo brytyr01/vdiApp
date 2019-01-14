@@ -1,5 +1,6 @@
 package com.example.bryantyrrell.vdiapp.Activities;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -156,6 +157,18 @@ public class PastMapsActivity extends FragmentActivity implements OnMapReadyCall
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, routePadding));
 
+    }
+    // starts map activity with past route
+    private void StartChatActivity(String RouteName) {
+        Intent intent = new Intent(this, PastMapsActivity.class);
+        intent.putExtra("RouteName",RouteName);
+        startActivity(intent);
+    }
+    // starts map activity with past route
+    private void StartStaticticsActivity(String RouteName) {
+        Intent intent = new Intent(this, PastMapsActivity.class);
+        intent.putExtra("RouteName",RouteName);
+        startActivity(intent);
     }
 }
 

@@ -5,7 +5,6 @@ import android.os.AsyncTask;
 import com.example.bryantyrrell.vdiapp.Database.DatabaseService;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +18,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+
 // this class takes the map and geo points and draws a road line
 //The Roads API identifies the roads a vehicle was traveling along
 //and provides additional metadata about those roads, such as speed limits.
@@ -45,22 +47,26 @@ public class DirectionsParser {
     public void URLstringBuilder() {
         //Creates a string in the form of http request for google api
         StringBuilder path = new StringBuilder();
+        StringBuilder Speedpath = new StringBuilder();
         path.append("https://roads.googleapis.com/v1/snapToRoads?path=");
-
+        Speedpath.append("https://roads.googleapis.com/v1/speedLimits?path=");
         // for loop iterates through all gps points and appends them as a string
         for (int i = 0; i < preProcessedPoints.size(); i++) {
             LatLng gpsPoint = preProcessedPoints.get(i);
             if (i == (preProcessedPoints.size() - 1)) {
                 path.append(gpsPoint.latitude + "," + gpsPoint.longitude + "&");
+                Speedpath.append(gpsPoint.latitude + "," + gpsPoint.longitude + "&");
             } else {
                 path.append(gpsPoint.latitude + "," + gpsPoint.longitude + "|");
+                Speedpath.append(gpsPoint.latitude + "," + gpsPoint.longitude + "|");
             }
         }
         path.append("interpolate=true&");
         path.append("key=AIzaSyBIXmHTXWs1LfOc7E6ERSGMQRWd4sA6swM");
 
+        Speedpath.append("key=AIzaSyBu3T_2-eHuWB216xOnv6Dew2oEpnjVB28");
+
         // calls snap to route api from google in inner private class
-        System.out.println("Print url: "+path.toString());
         SnapToRoadAPICall SnapToRoad = new SnapToRoadAPICall();
         SnapToRoad.execute(path.toString());
 
@@ -90,7 +96,7 @@ public class DirectionsParser {
                         jsonStringBuilder.append(line);
                         jsonStringBuilder.append("\n");
                     }
-                    System.out.println(jsonStringBuilder.toString());
+                    //System.out.println(jsonStringBuilder.toString());
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
@@ -112,11 +118,8 @@ public class DirectionsParser {
     }
 
     private void ParseJsonResult() {
-
-
         try {
             JSONObject obj = new JSONObject(JSONFile);
-            System.out.println(obj.toString());
             JSONArray geodata = obj.getJSONArray("snappedPoints");
             final int n = geodata.length();
             for (int i = 0; i < n; ++i) {
@@ -126,16 +129,15 @@ public class DirectionsParser {
                     LatLng point = new LatLng(obje.getDouble("latitude"), obje.getDouble("longitude"));
                     postProcessedPoints.add(point);
                 }
-                if (geopoint.has("placeId")) {
-                    JSONObject obje = geopoint.getJSONObject("placeId");
-                    String SingleLocationID = new String(obje.getString("placeId"));
+               if (geopoint.has("placeId")) {
+                    String SingleLocationID = new String(geopoint.getString("placeId"));
                     LocationID.add(SingleLocationID);
                 }
             }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         RedrawLine();
 
     }
@@ -173,5 +175,6 @@ public class DirectionsParser {
         LocationID.clear();
 
     }
+
 
 }

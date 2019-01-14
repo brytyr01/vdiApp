@@ -60,12 +60,10 @@ public class RegisterPageActivity extends AppCompatActivity {
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(RegisterPageActivity.this, "Authentication failed.",
+                            Toast.makeText(RegisterPageActivity.this, "Registration failed.",
                                     Toast.LENGTH_SHORT).show();
                             reportError();
                         }
-
-                        // ...
                     }
                 });
 

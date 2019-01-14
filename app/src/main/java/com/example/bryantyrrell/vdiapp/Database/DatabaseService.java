@@ -16,7 +16,7 @@ import static android.support.constraint.Constraints.TAG;
 public class DatabaseService {
     private FirebaseFirestore db;
     private String userID,userName,RouteName;
-    private ArrayList<LatLng> preProcessedPoints,postProcessedPoints;
+    private ArrayList<LatLng> preProcessedPoints,postProcessedPoints,cachedProcessedPoints;
     private ArrayList<String> LocationID;
     private DocumentReference userDocument;
     private int count,count1,count2=0;
@@ -29,6 +29,7 @@ public class DatabaseService {
         preProcessedPoints = new ArrayList<>();
         postProcessedPoints = new ArrayList<>();
         LocationID = new ArrayList<>();
+        cachedProcessedPoints=new ArrayList<>();
         db = FirebaseFirestore.getInstance();
         setUserDocument();
 
@@ -72,6 +73,11 @@ public class DatabaseService {
 
     public void addPostGpsPoint(LatLng GPSPoint) {
         postProcessedPoints.add(GPSPoint);
+        cachedProcessedPoints.add(GPSPoint);
+        if(cachedProcessedPoints.size()==2){
+            //send two points to gps class
+            //clear array
+        }
 
         if(postProcessedPoints.size()>=3){
             for(int i=0;i<postProcessedPoints.size();i++) {

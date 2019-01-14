@@ -119,4 +119,5 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="title_activity_past_maps">Map</string>
+    <string name="title_activity_chat">ChatActivity</string>
 </resources>

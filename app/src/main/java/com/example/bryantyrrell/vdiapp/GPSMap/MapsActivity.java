@@ -47,6 +47,8 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
     private ImageButton fabButton;//fab
     private View fabAction1, fabAction2, fabAction3;
     private FabButtons fab;
+    private int count = 0;
+    private Location Currentlatlng,LastlatLng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +126,19 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
     public void onLocationChanged(Location location) {
 
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        if(Currentlatlng!=location&&Currentlatlng!=null){
+            LastlatLng = Currentlatlng;
+        }
+        Currentlatlng = location;
+
+        if(count>=1){
+            double speed = 0;
+            speed=location.distanceTo(LastlatLng)/((Currentlatlng.getTime()-LastlatLng.getTime())/1000);
+//            System.out.println("distance is: "+location.distanceTo(LastlatLng));
+//            System.out.println("Manual speed is: "+speed*3.6);
+        }
+       count++;
         // adds a marker for new gps point
         addMarker(latLng);
 
@@ -134,6 +149,17 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
         if (storedPoints.size() > 1 && fab.getState() == 1) {
             directionsParser.URLstringBuilder();
         }
+
+        float speed = ((location.getSpeed()*3600)/1000);
+        System.out.println("The location m/s speed is: "+location.getSpeed());
+        System.out.println("The location m/s speed is: "+speed);
+        if(location.hasAccuracy()||location.hasSpeedAccuracy()) {
+            //System.out.println("The speed accuracy is: " + location.getSpeedAccuracyMetersPerSecond());
+            System.out.println("The accuracy is: " + location.getAccuracy());
+        }
+//        System.out.println("The distance is: "+;
+//        System.out.println("The location m/s speed is: "+location.getSpeed());
+//        System.out.println("The speed is: "+speed);
 
 
     }
@@ -164,33 +190,33 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
 
 
     // Gets the location of the user on demand
-    private void getLocation() {
-        LocationDialog = new ProgressDialog(this);
-        LocationDialog.setMessage("Loading location...");
-        LocationDialog.show();
-
-        if (ActivityCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-
-            Toast.makeText(this, "Permission to access GPS denied", Toast.LENGTH_SHORT).show();
-
-            LocationDialog.dismiss();
-            return;
-        }
-
-        SingleShotLocationProvider.requestSingleUpdate(this,
-                new SingleShotLocationProvider.LocationCallback() {
-                    @Override
-                    public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
-                        LatLng latLng = new LatLng(location.latitude, location.longitude);
-                        LocationDialog.dismiss();
-                        addMarker(latLng);
-
-                    }
-                });
-    }
+//    private void getLocation() {
+//        LocationDialog = new ProgressDialog(this);
+//        LocationDialog.setMessage("Loading location...");
+//        LocationDialog.show();
+//
+//        if (ActivityCompat.checkSelfPermission(this,
+//                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+//                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+//                        != PackageManager.PERMISSION_GRANTED) {
+//
+//            Toast.makeText(this, "Permission to access GPS denied", Toast.LENGTH_SHORT).show();
+//
+//            LocationDialog.dismiss();
+//            return;
+//        }
+//
+//        SingleShotLocationProvider.requestSingleUpdate(this,
+//                new SingleShotLocationProvider.LocationCallback() {
+//                    @Override
+//                    public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
+//                        LatLng latLng = new LatLng(location.latitude, location.longitude);
+//                        LocationDialog.dismiss();
+//                        addMarker(latLng);
+//
+//                    }
+//                });
+//    }
 
 
 
@@ -259,8 +285,8 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
         boolean isNetwork = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         boolean canGetLocation = true;
         int ALL_PERMISSIONS_RESULT = 101;
-        long MIN_DISTANCE_CHANGE_FOR_UPDATES = 100;// Distance in meters
-        long MIN_TIME_BW_UPDATES = 1000 * 5 * 1;// Time in milliseconds
+        long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10;// Distance in meters
+        long MIN_TIME_BW_UPDATES = 1000 * 1 * 1;// Time in milliseconds
 
         ArrayList<String> permissions = new ArrayList<>();
         ArrayList<String> permissionsToRequest;

@@ -33,12 +33,12 @@
         <ImageButton
             android:id="@id/fab_action_1"
             style="@style/FloatingActionButton.Mini"
-            android:src="@drawable/plus"
             android:layout_above="@id/fab"
             android:layout_alignEnd="@id/fab"
             android:contentDescription="@null"
-            app:backgroundTint="@color/lawn_green"
-            android:onClick="fabAction1" />
+            android:onClick="fabAction1"
+            android:src="@drawable/plus"
+            app:backgroundTint="@color/lawn_green" />
 
         <ImageButton
             android:id="@id/fab"
