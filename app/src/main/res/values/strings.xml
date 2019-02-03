@@ -120,4 +120,5 @@
     </string>
     <string name="title_activity_past_maps">Map</string>
     <string name="title_activity_chat">ChatActivity</string>
+    <string name="title_activity_pairing">PairingActivity</string>
 </resources>

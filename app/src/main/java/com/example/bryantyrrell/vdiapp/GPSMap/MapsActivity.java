@@ -120,6 +120,7 @@ public class MapsActivity extends AppCompatActivity  implements LocationListener
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         directionsParser = new DirectionsParser(mMap, storedPoints, databaseUser);
+
     }
 
     @Override

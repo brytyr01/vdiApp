@@ -65,6 +65,7 @@
             android:layout_alignParentBottom="true"
             android:layout_marginTop="8dp"
             android:contentDescription="@null"
+            android:onClick="StartChatActivity"
             android:src="@drawable/plus"
             android:visibility="visible" />
 

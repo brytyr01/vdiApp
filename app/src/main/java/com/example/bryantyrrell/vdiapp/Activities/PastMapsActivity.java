@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.View;
+
 import com.example.bryantyrrell.vdiapp.Database.DatabaseService;
 import com.example.bryantyrrell.vdiapp.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,12 +28,13 @@ import java.util.ArrayList;
 
 public class PastMapsActivity extends FragmentActivity implements OnMapReadyCallback {
     private GoogleMap mMap;
-    private String routeName;
+    private String routeName,UserName,UserID;
     GeoPoint geoPoint;
     GeoPoint point;
     private ArrayList<GeoPoint> postProcessedPoints = new ArrayList<>();
     private ArrayList<LatLng> postProcessedLatLngPoints;
     LatLng LtLngPoint;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +46,8 @@ public class PastMapsActivity extends FragmentActivity implements OnMapReadyCall
         mapFragment.getMapAsync(this);
 
         routeName = getIntent().getStringExtra("RouteName");
-        System.out.println("The route got to the past map activity: " + routeName);
+        UserName = getIntent().getStringExtra("UserName");
+        UserID = getIntent().getStringExtra("UserID");
     }
 
 
@@ -69,8 +73,7 @@ public class PastMapsActivity extends FragmentActivity implements OnMapReadyCall
     private void getGPSPoints() {
         //gets database reference
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser user = mAuth.getCurrentUser();
-        DatabaseService DatabaseAccessor = new DatabaseService(user.getUid(), user.getEmail());
+        DatabaseService DatabaseAccessor = new DatabaseService(UserID, UserName);
 
         DocumentReference userDocument = DatabaseAccessor.getUserDocument();
 
@@ -159,15 +162,16 @@ public class PastMapsActivity extends FragmentActivity implements OnMapReadyCall
 
     }
     // starts map activity with past route
-    private void StartChatActivity(String RouteName) {
-        Intent intent = new Intent(this, PastMapsActivity.class);
-        intent.putExtra("RouteName",RouteName);
+    public void StartChatActivity(View view) {
+        Intent intent = new Intent(this, ChatActivity.class);
+        intent.putExtra("RouteName",routeName);
+        intent.putExtra("UserName",UserName);
+        intent.putExtra("UserID",UserID);
         startActivity(intent);
     }
     // starts map activity with past route
-    private void StartStaticticsActivity(String RouteName) {
+    public void StartStaticticsActivity(View view) {
         Intent intent = new Intent(this, PastMapsActivity.class);
-        intent.putExtra("RouteName",RouteName);
         startActivity(intent);
     }
 }

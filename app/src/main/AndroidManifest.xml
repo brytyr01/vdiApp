@@ -76,6 +76,9 @@
             android:label="@string/title_activity_past_maps" />
 
         <service
+            android:name=".GPSMap.Accelerometer"
+            android:exported="false" />
+        <service
             android:name=".GPSMap.GpsSpeedService"
             android:exported="false" />
         <service
@@ -92,6 +95,20 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.bryantyrrell.vdiapp.Activities.PastMapsActivity" />
         </activity>
+        <activity android:name=".Activities.UserActivity" />
+        <activity android:name=".Activities.InstructorMainActivity" />
+        <activity
+            android:name=".Activities.PairingActivity"
+            android:label="@string/title_activity_pairing"
+            android:parentActivityName=".Activities.InstructorMainActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.bryantyrrell.vdiapp.Activities.InstructorMainActivity" />
+        </activity>
+        <activity android:name=".Activities.FriendRequestActivity" />
+        <activity android:name=".GPSMap.AccelerometerActivity" />
+        <activity android:name=".Activities.GyroscopeActivity"></activity>
     </application>
 
 </manifest>
